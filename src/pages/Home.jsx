@@ -136,13 +136,7 @@ const HomePage = () => {
       </section>
 
       {/* ---------------- FOOTER ---------------- */}
-      <footer className="bg-gray-100 py-8 text-center text-gray-600 text-sm">
-        <div className="flex justify-center items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4" />
-          <span>Made with ❤️ in India</span>
-        </div>
-        © {new Date().getFullYear()} FoodShare. All rights reserved.
-      </footer>
+      
     </div>
   );
 };

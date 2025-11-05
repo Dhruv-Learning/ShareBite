@@ -12,6 +12,26 @@ const fadeUp = {
 };
 
 const About = () => {
+  const data=[
+    {
+      name:"Dhruv Sharma",
+      role:"Developer",
+      img:"https://randomuser.me/api/portraits/men/1.jpg",
+      github:'https://github.com/Dhruv-Learning'
+    },
+    {
+      name:"Hareram",
+      role:"Project Manager",
+      img:"://randomusehttpsr.me/api/portraits/women/2.jpg",
+      github:'https://github.com/Hareram-codes'    
+    },
+    {
+      name:"Mohit Rai",
+      role:"Designer",
+      img:"https://randomuser.me/api/portraits/men/3.jpg",
+      github:'https://github.com/Dhruv-Learning' 
+    }
+  ]
   return (
     <div className="font-sans text-gray-800 overflow-hidden">
       {/* HERO */}
@@ -114,9 +134,9 @@ const About = () => {
         </motion.p>
 
         <div className="flex flex-wrap justify-center gap-10">
-          {[1, 2, 3].map((num, i) => (
+          {data.map((item, i) => (
             <motion.div
-              key={num}
+              key={item.name}
               className="w-52 h-60 bg-white rounded-2xl shadow hover:shadow-lg transition p-4 flex flex-col justify-center items-center"
               whileHover={{ scale: 1.05 }}
               variants={fadeUp}
@@ -124,9 +144,17 @@ const About = () => {
               initial="hidden"
               whileInView="visible"
             >
-              <Users className="w-10 h-10 text-yellow-500 mb-3" />
-              <h3 className="font-semibold text-lg">Volunteer {num}</h3>
-              <p className="text-sm text-gray-500">Local Contributor</p>
+              
+              <img
+                src={item.img}
+                alt={item.name}
+                className="w-24 h-24 rounded-full mb-4 object-cover"
+              />
+              <button className="px-3 py-1 bg-yellow-500 rounded-full hover:bg-yellow-400 transition mb-2">
+                <a href={item.github} target="_blank" rel="noopener noreferrer" className="text-black-500 hover:underline mb-2">GitHub</a>
+              </button>
+              <h3 className="font-semibold text-lg">{item.name}</h3>
+              <p className="text-sm text-gray-500">{item.role}</p>
             </motion.div>
           ))}
         </div>

@@ -8,6 +8,9 @@ import Home from './pages/Home'
 import AboutUs from './pages/About'
 import Contact from './pages/Contact'
 import Login from './pages/Login'
+import ShareFood from './pages/ShareFood'
+import BrowerFood from './pages/BrowerFood'
+import Footer from './components/Footer'
 
 function App() {
  
@@ -19,7 +22,10 @@ function App() {
       <Route path='/about' element={<AboutUs/>}/>
       <Route path='/contact' element={<Contact/>}/>
       <Route path='/login' element={<Login/>}/>
+      <Route path='/share' element={<ShareFood/>}/>
+      <Route path='/find-food' element={<BrowerFood/>}/>
     </Routes>
+    <Footer/>
     </BrowserRouter>
   )
 }

@@ -14,13 +14,13 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-white/90 backdrop-blur-sm sticky top-0 z-50 shadow-md transition-all duration-300">
+    <nav className="bg-white/90 backdrop-blur-xs sticky top-0 z-50 shadow-md transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* ----------- Logo ----------- */}
         <Link to="/" className="flex items-center gap-2">
           <Heart className="text-yellow-500 w-7 h-7" />
           <span className="text-2xl font-bold text-gray-800">
-            Food<span className="text-yellow-500">Share</span>
+            Share<span className="text-yellow-500">Bite</span>
           </span>
         </Link>
 

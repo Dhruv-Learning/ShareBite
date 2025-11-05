@@ -42,7 +42,7 @@ const Contact = () => {
             href="mailto:support@eathealthy.com"
             className="text-green-600 font-medium hover:underline"
           >
-            support@eathealthy.com
+            ks8302768@gmail.com
           </a>
         </div>
 
@@ -55,7 +55,7 @@ const Contact = () => {
             href="tel:+919876543210"
             className="text-green-600 font-medium hover:underline"
           >
-            +91 98765 43210
+            +91 6396309164
           </a>
         </div>
 
