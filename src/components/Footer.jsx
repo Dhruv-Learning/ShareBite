@@ -12,9 +12,9 @@ const Footer = () => {
   ]
   return (
     <>
-    <footer className="bg-gray-100 py-8 text-center text-gray-600 text-sm flex items-center gap-4 justify-around p-15  flex-col md:flex-row">
+    <footer className="bg-gray-100 py-8 text-center text-gray-800 text-sm flex items-center gap-4 justify-around p-15  flex-col md:flex-row">
     <div className='flex flex-col items-center justify-start gap-4'>
-      <h2 className='text-4xl font-bold flex items-center gap-2'> <Heart size={28} className='text-yellow-500'/> Share<span className='text-yellow-400'>Bite</span></h2>
+      <h2 className='text-4xl font-bold flex items-center'> <Heart size={28} className='text-yellow-600 mr-2'/> Share<span className='text-yellow-500'>Bite</span></h2>
       <p className='max-w-sm'>Got extra homemade food? Share it with those nearby who could use a meal. Let’s make kindness the new flavor of our city.</p>
       <p className='flex gap-5 mt-3 '>
       <Github className='hover:text-yellow-500 hover:scale-110 transition-all duration-300 cursor-pointer'/>
@@ -32,7 +32,7 @@ const Footer = () => {
       
         <div className='flex flex-col'>
           {footItems.map((item,i)=>(
-            <a key={i} href={item.path} className="mx-2 hover:text-yellow-500 text-xl">{item.label}</a>
+            <a key={i} href={item.path} className="mx-2 hover:text-yellow-500 text-lg">{item.label}</a>
           ))}
         </div>
       </p>
@@ -46,7 +46,7 @@ const Footer = () => {
     </div>
 
     </footer>
-    <p> ©2025 Developed by creative thinkers 💡 of India </p>
+    <p className='flex items-center justify-center bg-gray-100 pb-3 text-gray-600'> ©2025 Developed by creative thinkers 💡 of India </p>
    
           </>
   )

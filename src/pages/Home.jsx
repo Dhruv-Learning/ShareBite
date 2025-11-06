@@ -69,7 +69,7 @@ const HomePage = () => {
               whileInView="visible"
               transition={{ delay: i * 0.2, duration: 0.6 }}
               viewport={{ once: true }}
-              className="p-6 rounded-2xl shadow-md hover:shadow-lg transition"
+              className="p-6 rounded-2xl shadow-lg hover:shadow-lg transition"
             >
               <div className={`bg-${item.color}-100 inline-flex p-4 rounded-full mb-4`}>
                 <item.icon className={`text-${item.color}-600 w-8 h-8`} />
@@ -128,14 +128,13 @@ const HomePage = () => {
           Every shared meal creates a connection. Let’s build a community that nourishes both hearts and stomachs.
         </p>
         <motion.button
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.05 }}
+          transition={{duration:0.2}}
           className="bg-yellow-400 text-black font-semibold px-8 py-3 rounded-full hover:bg-yellow-300 transition flex items-center gap-2 mx-auto"
         >
           Join FoodShare <ArrowRight className="w-5 h-5" />
         </motion.button>
       </section>
-
-      {/* ---------------- FOOTER ---------------- */}
       
     </div>
   );
