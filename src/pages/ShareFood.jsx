@@ -35,7 +35,7 @@ const ShareFood = () => {
       await addDoc(collection(db,'foods'),{
         ...form,
         price:parseFloat(form.price),
-        quantity:parseInt(form.quantity),
+        quantity:(form.quantity),
         createdAt:new Date(),
     });
     setForm({

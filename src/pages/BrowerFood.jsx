@@ -98,7 +98,7 @@ const FindFood = () => {
                   alt={food.title}
                   className="w-full h-52 object-cover transform group-hover:scale-105 transition duration-500"
                 />
-                <div className="absolute top-3 right-3 bg-yellow-400 text-gray-900 text-xs font-semibold px-3 py-1 rounded-full shadow">
+                <div className="absolute top-3 right-3 bg-yellow-400 text-gray-900 text-sm font-semibold px-4 py-2 rounded-full shadow">
                   ₹{food.price}
                 </div>
               </div>

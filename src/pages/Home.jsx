@@ -1,13 +1,16 @@
 import React from "react";
-import { Utensils, Share2, Heart, MapPin, ArrowRight } from "lucide-react";
+import { Utensils, Share2, Heart, MapPin, ArrowRight, ImageOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },
 };
 
+
 const HomePage = () => {
+  const navigate=useNavigate();
   return (
     <div className="font-sans text-gray-800">
       {/* ---------------- HERO SECTION ---------------- */}
@@ -30,10 +33,12 @@ const HomePage = () => {
             whileHover={{ scale: 1.05 }}
             className="flex flex-wrap justify-center gap-4"
           >
-            <button className="bg-yellow-400 text-black font-semibold px-6 py-3 rounded-full hover:bg-yellow-300 transition">
+            <button onClick={()=>navigate("/share")}
+             className="bg-yellow-400 text-black font-semibold px-6 py-3 rounded-full hover:bg-yellow-300 transition">
               Share Your Food
             </button>
-            <button className="bg-transparent border border-white px-6 py-3 rounded-full hover:bg-white hover:text-black transition">
+            <button onClick={()=>navigate("/find-food")} 
+            className="bg-transparent border border-white px-6 py-3 rounded-full hover:bg-white hover:text-black transition">
               Find Food Near You
             </button>
           </motion.div>

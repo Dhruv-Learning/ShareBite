@@ -11,6 +11,8 @@ import Login from './pages/Login'
 import ShareFood from './pages/ShareFood'
 import BrowerFood from './pages/BrowerFood'
 import Footer from './components/Footer'
+import FoodDetails from './pages/FoodDetails'
+import { Github } from 'lucide-react'
 
 function App() {
  
@@ -24,6 +26,8 @@ function App() {
       <Route path='/login' element={<Login/>}/>
       <Route path='/share' element={<ShareFood/>}/>
       <Route path='/find-food' element={<BrowerFood/>}/>
+      <Route path="/food/:id" element={<FoodDetails/>} />
+      <Route path="https://github.com/Dhruv-Learning" element={<Github/>} />
     </Routes>
     <Footer/>
     </BrowserRouter>
