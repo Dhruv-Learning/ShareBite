@@ -8,8 +8,10 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
+  const navigate =useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -47,6 +49,7 @@ const AuthPage = () => {
     try {
       await signInWithEmailAndPassword(auth, form.email, form.password);
       alert("Login successful ✅");
+      navigate('/find-food');
     } catch (err) {
       alert(err.message);
     }

@@ -1,228 +1,263 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
-  collection,
-  getDoc,
-  getDocs,
   doc,
+  getDoc,
+  onSnapshot,
+  collection,
   addDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { motion } from "framer-motion";
-import { Star, Loader2 } from "lucide-react";
-import { loadRazorpay } from "../utils/razorpay";
+import {
+  MapPin,
+  Clock,
+  User,
+  ShoppingBag,
+  SendHorizonal,
+} from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
 
 const FoodDetails = () => {
   const { id } = useParams();
-  const [food, setFood] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [reviewText, setReviewText] = useState("");
-  const [rating, setRating] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  // ---------------- Fetch food details ----------------
+  const [food, setFood] = useState(null);
+  const [uploader, setUploader] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [newReview, setNewReview] = useState("");
+  const [user, setUser] = useState(null);
+
+  // Track current auth user
   useEffect(() => {
-    const fetchFoodDetails = async () => {
-      try {
-        const docRef = doc(db, "foods", id);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) setFood({ id: snap.id, ...snap.data() });
-      } catch (err) {
-        console.error("Error fetching food details:", err);
-      } finally {
-        setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (currUser) => {
+      if (currUser) {
+        const userRef = doc(db, "users", currUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) setUser(userSnap.data());
+        else
+          setUser({
+            name: currUser.displayName || "Anonymous",
+            email: currUser.email,
+            photoURL: currUser.photoURL || "https://i.pravatar.cc/100",
+            uid: currUser.uid,
+          });
+      } else setUser(null);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch food details and uploader info
+  useEffect(() => {
+    const fetchFood = async () => {
+      const foodRef = doc(db, "foods", id);
+      const foodSnap = await getDoc(foodRef);
+      if (foodSnap.exists()) {
+        const data = { id: foodSnap.id, ...foodSnap.data() };
+        setFood(data);
+
+        // Fetch uploader
+        if (data.userId) {
+          const uploaderRef = doc(db, "users", data.userId);
+          const uploaderSnap = await getDoc(uploaderRef);
+          if (uploaderSnap.exists()) setUploader(uploaderSnap.data());
+        }
       }
     };
-    fetchFoodDetails();
+    fetchFood();
   }, [id]);
 
-  // ---------------- Fetch reviews ----------------
-  const fetchReviews = async () => {
-    try {
-      const reviewRef = collection(db, "foods", id, "reviews");
-      const snap = await getDocs(reviewRef);
-      const reviewList = snap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setReviews(reviewList.sort((a, b) => b.createdAt - a.createdAt));
-    } catch (err) {
-      console.error("Error fetching reviews:", err);
-    }
-  };
-
+  // Real-time reviews listener
   useEffect(() => {
-    fetchReviews();
+    const reviewsRef = collection(db, "foods", id, "reviews");
+    const unsub = onSnapshot(reviewsRef, (snapshot) => {
+      const revs = snapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+      setReviews(revs);
+    });
+    return () => unsub();
   }, [id]);
 
-  // ---------------- Handle Submit Review ----------------
-  const handleSubmitReview = async (e) => {
+  // Navigate to checkout page
+  const handleBuyNow = () => {
+    navigate(`/checkout/${id}`, { state: { food, uploader } });
+  };
+
+  // Add review
+  const handleAddReview = async (e) => {
     e.preventDefault();
-    if (!reviewText.trim() || rating === 0) return alert("Please add text & rating");
+    if (!user) return alert("Please log in to add a review");
+    if (!newReview.trim()) return;
 
     try {
-      const user = auth.currentUser;
-      if (!user) return alert("Please login to submit a review");
-
-      setSubmitting(true);
-
-      // Fetch user data
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      const userData = userDoc.exists() ? userDoc.data() : {};
-
-      await addDoc(collection(db, "foods", id, "reviews"), {
-        text: reviewText,
-        rating,
-        createdAt: serverTimestamp(),
+      const reviewsRef = collection(db, "foods", id, "reviews");
+      await addDoc(reviewsRef, {
+        text: newReview,
+        userName: user.name,
+        userPhoto: user.photoURL || "https://i.pravatar.cc/100",
         userId: user.uid,
-        userName: userData.name || user.displayName || "Anonymous",
-        userPhoto: userData.photoURL || user.photoURL || "https://i.pravatar.cc/100",
+        createdAt: serverTimestamp(),
       });
-
-      setReviewText("");
-      setRating(0);
-      fetchReviews();
-      alert("Review added successfully!");
+      setNewReview("");
     } catch (err) {
-      console.error("Error submitting review:", err);
-      alert("Something went wrong while adding review.");
-    } finally {
-      setSubmitting(false);
+      console.error("Error adding review:", err);
     }
   };
 
-  const handleBuyNow = async () => {
-    await loadRazorpay(food);
-  };
-
-  if (loading || !food)
+  if (!food)
     return (
-      <div className="flex justify-center items-center h-96">
-        <Loader2 className="animate-spin text-yellow-500" size={36} />
+      <div className="min-h-screen flex justify-center items-center text-gray-500">
+        Loading food details...
       </div>
     );
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="min-h-screen bg-gradient-to-b from-yellow-50 to-white py-10 px-4 md:px-10"
-    >
-      <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-3xl overflow-hidden">
-        <motion.img
-          src={food.imageUrl}
-          alt={food.name}
-          className="w-full h-80 object-cover hover:scale-105 transition-transform duration-700"
-        />
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 py-12 px-6 md:px-16">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-5xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden"
+      >
+        {/* Food Image */}
+        <div className="relative">
+          <img
+            src={food.imageUrl || "https://via.placeholder.com/600x400"}
+            alt={food.name}
+            className="w-full h-80 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <div className="absolute bottom-5 left-6 text-white">
+            <h1 className="text-3xl font-bold drop-shadow-md">{food.name}</h1>
+            {food.category && (
+              <p className="text-lg font-medium opacity-90">{food.category}</p>
+            )}
+          </div>
+        </div>
 
-        <div className="p-8 space-y-6">
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl font-bold text-gray-900"
-          >
-            {food.title}
-          </motion.h1>
-
-          <p className="text-gray-600 leading-relaxed">{food.description}</p>
-
-          <div className="flex justify-between items-center">
-            <h3 className="text-2xl font-semibold text-yellow-600">
-              ₹{food.price}
-            </h3>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handleBuyNow}
-              className="bg-yellow-400 hover:bg-yellow-500 transition text-gray-900 font-semibold px-6 py-2.5 rounded-lg shadow-lg"
-            >
-              Buy Now
-            </motion.button>
+        {/* Food & Uploader Info */}
+        <div className="p-8 md:p-10">
+          <div className="flex items-center gap-4 mb-6">
+            <img
+              src={uploader?.photoURL || "https://i.pravatar.cc/100"}
+              alt="Uploader"
+              className="w-14 h-14 rounded-full object-cover border-2 border-yellow-400 shadow"
+            />
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <User size={18} className="text-yellow-500" />
+                {uploader?.name || "Anonymous User"}
+              </h2>
+              <p className="text-sm text-gray-500">{uploader?.email}</p>
+              {food.location && (
+                <p className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+                  <MapPin size={16} className="text-yellow-500" />
+                  {food.location}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* ---------------- Reviews Section ---------------- */}
-          <div className="mt-10 border-t pt-6">
-            <h2 className="text-2xl font-semibold mb-4">Customer Reviews</h2>
+          {/* Description */}
+          <p className="text-gray-700 leading-relaxed mb-6">{food.description}</p>
 
-            {/* Reviews List */}
-            <div className="space-y-4">
-              {reviews.length > 0 ? (
-                reviews.map((rev) => (
+          {/* Expiry & Quantity */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            <div className="flex items-center gap-3 text-gray-600">
+              <Clock size={20} className="text-yellow-500" />
+              <span>
+                <strong>Expiry:</strong> {food.expiryDate || "N/A"}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-600">
+              <ShoppingBag size={20} className="text-yellow-500" />
+              <span>
+                <strong>Quantity:</strong> {food.quantity || "1 serving"}
+              </span>
+            </div>
+          </div>
+
+          {/* Location Map (if available) */}
+          {food.latitude && food.longitude && (
+            <iframe
+              title="map"
+              className="w-full h-64 rounded-2xl shadow-md mb-8"
+              src={`https://www.google.com/maps?q=${food.latitude},${food.longitude}&z=15&output=embed`}
+              allowFullScreen
+              loading="lazy"
+            ></iframe>
+          )}
+
+          {/* Reviews Section */}
+          <div className="mt-10">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4">Reviews</h3>
+
+            {/* Add Review */}
+            <form
+              onSubmit={handleAddReview}
+              className="flex items-center gap-3 mb-6"
+            >
+              <img
+                src={user?.photoURL || "https://i.pravatar.cc/100"}
+                alt="User"
+                className="w-10 h-10 rounded-full object-cover border"
+              />
+              <input
+                type="text"
+                placeholder="Write your review..."
+                value={newReview}
+                onChange={(e) => setNewReview(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-full px-4 py-2 outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+              <button
+                type="submit"
+                className="bg-yellow-400 hover:bg-yellow-300 p-2 rounded-full"
+              >
+                <SendHorizonal size={20} />
+              </button>
+            </form>
+
+            {/* Display Reviews */}
+            {reviews.length > 0 ? (
+              <div className="space-y-4">
+                {reviews.map((rev) => (
                   <div
                     key={rev.id}
-                    className="p-4 border rounded-2xl bg-gray-50 flex items-start gap-3"
+                    className="bg-gray-50 border border-gray-200 p-4 rounded-xl shadow-sm flex items-start gap-3"
                   >
                     <img
                       src={rev.userPhoto || "https://i.pravatar.cc/100"}
                       alt={rev.userName}
-                      className="w-10 h-10 rounded-full border"
+                      className="w-10 h-10 rounded-full object-cover"
                     />
                     <div>
-                      <h4 className="font-semibold text-gray-800">
-                        {rev.userName}
-                      </h4>
-                      <div className="flex items-center text-yellow-500 text-sm mb-1">
-                        {Array.from({ length: rev.rating }).map((_, i) => (
-                          <Star key={i} size={14} fill="currentColor" />
-                        ))}
-                      </div>
-                      <p className="text-gray-600 text-sm">{rev.text}</p>
+                      <p className="font-semibold text-gray-800">{rev.userName}</p>
+                      <p className="text-gray-600 text-sm mt-1">{rev.text}</p>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No reviews yet. Be the first!</p>
-              )}
-            </div>
-
-            {/* ---------------- Add Review ---------------- */}
-            <form
-              onSubmit={handleSubmitReview}
-              className="mt-8 bg-white p-4 border rounded-2xl shadow-sm space-y-4"
-            >
-              <h3 className="text-lg font-semibold text-gray-800">
-                Add Your Review
-              </h3>
-
-              <div className="flex gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i} 
-                    size={22}
-                    className={`cursor-pointer ${
-                      i < rating ? " strokeWidth={7} absoluteStrokeWidth text-yellow-400   " : "text-gray-300"
-                    }`}
-                    onClick={() => setRating(i + 1)}
-                  />
                 ))}
               </div>
+            ) : (
+              <p className="text-gray-500">No reviews yet. Be the first!</p>
+            )}
+          </div>
 
-              <textarea
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Write your thoughts..."
-                className="w-full border rounded-xl p-3 text-gray-700 outline-none focus:ring-2 focus:ring-yellow-400"
-                rows="3"
-              ></textarea>
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="bg-yellow-400 hover:bg-yellow-500 transition text-gray-900 font-semibold px-5 py-2.5 rounded-lg shadow-md"
-              >
-                {submitting ? "Submitting..." : "Submit Review"}
-              </button>
-            </form>
+          {/* Request / Buy Button */}
+          <div className="mt-10 text-center">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleBuyNow}
+              className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-semibold px-8 py-3 rounded-full shadow-lg transition-all duration-300"
+            >
+              Request This Food
+            </motion.button>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 

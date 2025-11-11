@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import Navbar from './components/Navbar'
 import { BrowserRouter,Route,Routes } from 'react-router-dom';
@@ -13,6 +11,7 @@ import BrowerFood from './pages/BrowerFood'
 import Footer from './components/Footer'
 import FoodDetails from './pages/FoodDetails'
 import { Github } from 'lucide-react'
+import Checkout from './pages/Checkout'
 
 function App() {
  
@@ -28,6 +27,7 @@ function App() {
       <Route path='/find-food' element={<BrowerFood/>}/>
       <Route path="/food/:id" element={<FoodDetails/>} />
       <Route path="https://github.com/Dhruv-Learning" element={<Github/>} />
+      <Route path="/checkout/:id" element={<Checkout/>} />
     </Routes>
     <Footer/>
     </BrowserRouter>

@@ -1,10 +1,8 @@
-// src/pages/FindFood.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Clock, Star } from "lucide-react";
-import { collection, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { loadRazorpay } from "../utils/razorpay";
 import { useNavigate } from "react-router-dom";
 import FoodFilters from "../components/FoodFilters";
 
@@ -16,19 +14,30 @@ const FindFood = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const navigate = useNavigate();
 
-  // Fetch foods + reviews
+  // Fetch foods + average rating
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "foods"), async (snap) => {
       const foodList = await Promise.all(
         snap.docs.map(async (docSnap) => {
           const food = { id: docSnap.id, ...docSnap.data() };
+
+          // Get uploader info
+          let uploaderData = null;
+          if (food.userId) {
+            const uploaderRef = doc(db, "users", food.userId);
+            const uploaderSnap = await getDoc(uploaderRef);
+            if (uploaderSnap.exists()) uploaderData = uploaderSnap.data();
+          }
+
+          // Calculate avgRating
           const reviewsSnap = await getDocs(collection(db, "foods", docSnap.id, "reviews"));
           const reviews = reviewsSnap.docs.map((r) => r.data());
           const avgRating =
             reviews.length > 0
-              ? (reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1)
+              ? (reviews.reduce((a, b) => a + (b.rating || 0), 0) / reviews.length).toFixed(1)
               : 0;
-          return { ...food, avgRating, reviewCount: reviews.length };
+
+          return { ...food, uploader: uploaderData, avgRating, reviewCount: reviews.length };
         })
       );
       setFoods(foodList);
@@ -36,10 +45,6 @@ const FindFood = () => {
     });
     return () => unsubscribe();
   }, []);
-
-  const handleBuy = async (food) => {
-    await loadRazorpay(food);
-  };
 
   const locations = useMemo(() => [...new Set(foods.map((f) => f.location))], [foods]);
 
@@ -49,13 +54,14 @@ const FindFood = () => {
         f.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         f.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    if (selectedLocation) {
-      filtered = filtered.filter((f) => f.location === selectedLocation);
-    }
-    return filtered.sort((a, b) =>
-      sortOrder === "asc" ? a.price - b.price : b.price - a.price
-    );
+    if (selectedLocation) filtered = filtered.filter((f) => f.location === selectedLocation);
+    return filtered.sort((a, b) => (sortOrder === "asc" ? a.price - b.price : b.price - a.price));
   }, [foods, searchTerm, sortOrder, selectedLocation]);
+
+  // Navigate to checkout with food + uploader info
+  const handleBuy = (food) => {
+    navigate(`/checkout/${food.id}`, { state: { food, uploader: food.uploader } });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-100 py-20 px-6 font-sans">
@@ -65,7 +71,7 @@ const FindFood = () => {
         transition={{ duration: 0.6 }}
         className="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-12"
       >
-        Find Delicious Meals Nearby 
+        Find Delicious Meals Nearby
       </motion.h2>
 
       <FoodFilters
@@ -94,11 +100,11 @@ const FindFood = () => {
             >
               <div className="relative">
                 <img
-                  src={food.imageUrl}
+                  src={food.imageUrl || "https://via.placeholder.com/400x300"}
                   alt={food.title}
                   className="w-full h-52 object-cover transform group-hover:scale-105 transition duration-500"
                 />
-                <div className="absolute top-3 right-3 bg-yellow-400 text-gray-900 text-sm font-semibold px-4 py-2 rounded-full shadow">
+                <div className="absolute top-3 right-3 bg-green-600 text-white text-xs font-semibold px-4 py-2 rounded-full shadow">
                   ₹{food.price}
                 </div>
               </div>
@@ -111,9 +117,7 @@ const FindFood = () => {
                       key={index}
                       size={16}
                       className={`${
-                        index < Math.round(food.avgRating)
-                          ? "text-yellow-400"
-                          : "text-gray-300"
+                        index < Math.round(food.avgRating) ? "text-yellow-400" : "text-gray-300"
                       }`}
                     />
                   ))}
@@ -122,9 +126,7 @@ const FindFood = () => {
                   </span>
                 </div>
 
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  {food.description}
-                </p>
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{food.description}</p>
 
                 <div className="flex justify-between text-gray-700 text-sm mb-4">
                   <div className="flex items-center gap-1">
