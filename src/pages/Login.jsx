@@ -74,6 +74,7 @@ const AuthPage = () => {
         });
       }
       alert("Google Sign-in successful 🚀");
+            navigate('/find-food');
     } catch (err) {
       alert(err.message);
     }
