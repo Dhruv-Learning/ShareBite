@@ -16,7 +16,7 @@ const About = () => {
     {
       name:"Dhruv Sharma",
       role:"Developer",
-      img:"Dhruv-Learning/ShareBite/public/dhruv.png",
+      img:"/ShareBite/public/dhruv.png",
       github:'https://github.com/Dhruv-Learning'
     },
     {
