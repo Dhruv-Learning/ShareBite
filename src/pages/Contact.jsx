@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Contact = () => {
-
+ 
     const fadeUp = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },
@@ -64,7 +64,7 @@ const Contact = () => {
           <MapPin className="mx-auto text-green-600 mb-4" size={40} />
           <h3 className="text-xl font-semibold mb-2">Visit Us</h3>
           <p className="text-gray-600">
-            45, Green Valley Road, Vellore, Tamil Nadu, India
+            Bulandshahr, Uttar Pradesh, India
           </p>
         </div>
       </motion.div>

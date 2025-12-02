@@ -16,7 +16,7 @@ const About = () => {
     {
       name:"Dhruv Sharma",
       role:"Developer",
-      img:"https://randomuser.me/api/portraits/men/1.jpg",
+      img:"Dhruv-Learning/ShareBite/public/dhruv.png",
       github:'https://github.com/Dhruv-Learning'
     },
     {
