@@ -106,7 +106,7 @@ const Checkout = () => {
 
   const handleChange = (e) => setBuyer({ ...buyer, [e.target.name]: e.target.value });
 
-  const handleConfirm = async (food) => {
+  const handleConfirm = async () => {
     if (!buyer.name || !buyer.addressLine1 || !buyer.city || !buyer.pincode) {
       return alert("Please fill in all required fields");
     }
@@ -115,12 +115,12 @@ const Checkout = () => {
       await addDoc(ordersRef, {
         foodId: id,
         foodTitle: food.title,
-        sellerName: seller?.name || "Anonymous",
+        sellerName: seller?.displayName || "Anonymous",
         buyerName: buyer.name,
         buyerAddress: buyer,
         createdAt: new Date(),
       });
-      console.log(addDoc.createdAt);
+      // console.log(addDoc.createdAt);
       alert("Order placed successfully ✅");
 
       await loadRazorpay(food)
